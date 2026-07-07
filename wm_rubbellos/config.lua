@@ -74,7 +74,7 @@ Config.Progress = {
 -- ═══════════════════════════════════════════════════════════════
 Config.Locale = {
     title            = 'RUBBELLOS',
-    subtitle         = 'Halte und ziehe zum Freirubbeln',
+    subtitle         = 'Mit der Maus kratzen – wie mit einer Münze',
     brand            = 'Rubbellos',
     prizesButton     = 'Gewinne',
     prizesHeader     = 'Mögliche Gewinne',

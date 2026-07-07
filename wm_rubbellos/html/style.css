@@ -335,12 +335,18 @@ html, body {
     z-index: 3;
     width: 100%;
     height: 100%;
-    cursor: grab;
+    cursor:
+        url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 20 20'%3E%3Cellipse cx='10' cy='10' rx='7' ry='3.5' fill='%23d4a843' stroke='%239a7a2e' stroke-width='1.2' transform='rotate(-25 10 10)'/%3E%3C/svg%3E") 10 10,
+        crosshair;
     touch-action: none;
     transition: opacity 0.4s ease;
 }
 
-.field canvas:active { cursor: grabbing; }
+.field canvas:active {
+    cursor:
+        url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 20 20'%3E%3Cellipse cx='10' cy='10' rx='8' ry='4' fill='%23f0cc6a' stroke='%23d4a843' stroke-width='1.5' transform='rotate(-25 10 10)'/%3E%3C/svg%3E") 10 10,
+        crosshair;
+}
 
 .field-progress {
     position: absolute;

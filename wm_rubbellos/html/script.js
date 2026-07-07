@@ -189,105 +189,133 @@ function buildGrid(fields) {
     });
 }
 
-/* Realistische Silber-Rubbelschicht (metallisch + holografisch) */
+/* Silber-Rubbelschicht mit Kratz-Textur (wird strichweise freigerubbelt) */
 function paintScratchCoating(ctx, w, h) {
     const base = ctx.createLinearGradient(0, 0, w, h);
-    base.addColorStop(0, '#d4dce6');
-    base.addColorStop(0.22, '#eef2f7');
-    base.addColorStop(0.48, '#a8b4c4');
-    base.addColorStop(0.72, '#e2e8f0');
-    base.addColorStop(1, '#98a6b8');
+    base.addColorStop(0, '#ccd4de');
+    base.addColorStop(0.35, '#e4eaf0');
+    base.addColorStop(0.65, '#aab6c4');
+    base.addColorStop(1, '#9aa8b6');
     ctx.fillStyle = base;
     ctx.fillRect(0, 0, w, h);
 
-    // Holografische Streifen
-    for (let i = 0; i < 9; i++) {
-        const stripe = ctx.createLinearGradient(0, 0, w, h);
-        const hue = 195 + i * 7;
-        stripe.addColorStop(0, `hsla(${hue}, 72%, 68%, 0)`);
-        stripe.addColorStop(0.45, `hsla(${hue + 18}, 80%, 74%, 0.16)`);
-        stripe.addColorStop(1, `hsla(${hue + 32}, 70%, 62%, 0)`);
-        ctx.save();
-        ctx.translate(w * (0.08 + i * 0.1), h * 0.5);
-        ctx.rotate(-0.55 + i * 0.08);
-        ctx.fillStyle = stripe;
-        ctx.fillRect(-w * 0.35, -h * 1.2, w * 0.12, h * 2.4);
-        ctx.restore();
-    }
-
-    // Feine Kratzertextur
-    for (let i = 0; i < 480; i++) {
-        const alpha = 0.02 + Math.random() * 0.07;
+    // Feine metallische Kratzer (liegen unter der Schicht)
+    for (let i = 0; i < 600; i++) {
+        const alpha = 0.03 + Math.random() * 0.08;
         ctx.strokeStyle = Math.random() > 0.5
             ? `rgba(255,255,255,${alpha})`
-            : `rgba(30,48,68,${alpha * 0.9})`;
-        ctx.lineWidth = 0.4 + Math.random() * 1.1;
+            : `rgba(20,40,60,${alpha})`;
+        ctx.lineWidth = 0.3 + Math.random() * 0.9;
         ctx.beginPath();
         const x = Math.random() * w;
         const y = Math.random() * h;
+        const len = 4 + Math.random() * 18;
+        const ang = Math.random() * Math.PI;
         ctx.moveTo(x, y);
-        ctx.lineTo(x + (Math.random() - 0.5) * 14, y + (Math.random() - 0.5) * 6);
+        ctx.lineTo(x + Math.cos(ang) * len, y + Math.sin(ang) * len);
         ctx.stroke();
     }
 
-    // Fragezeichen-Muster wie echtes Rubbellos
+    // Dezentes Fragezeichen-Raster
     ctx.save();
-    ctx.fillStyle = 'rgba(22, 140, 255, 0.14)';
-    ctx.font = `700 ${Math.floor(h * 0.18)}px 'Chakra Petch', sans-serif`;
+    ctx.fillStyle = 'rgba(30, 60, 90, 0.12)';
+    ctx.font = `700 ${Math.floor(h * 0.16)}px 'Chakra Petch', sans-serif`;
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
-    const cols = 5;
-    const rows = 3;
-    for (let row = 0; row < rows; row++) {
-        for (let col = 0; col < cols; col++) {
-            const x = (col + 0.5) * (w / cols);
-            const y = (row + 0.5) * (h / rows);
-            ctx.save();
-            ctx.translate(x, y);
-            ctx.rotate((Math.random() - 0.5) * 0.35);
-            ctx.fillText('?', 0, 0);
-            ctx.restore();
+    for (let row = 0; row < 3; row++) {
+        for (let col = 0; col < 5; col++) {
+            const x = (col + 0.5) * (w / 5);
+            const y = (row + 0.5) * (h / 3);
+            ctx.fillText('?', x, y);
         }
     }
     ctx.restore();
 
-    // Mittiges Wasserzeichen
-    ctx.save();
-    ctx.translate(w / 2, h / 2);
-    ctx.rotate(-0.08);
-    ctx.font = `700 ${Math.floor(h * 0.38)}px 'Chakra Petch', sans-serif`;
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle';
-    ctx.fillStyle = 'rgba(22, 140, 255, 0.12)';
-    ctx.fillText('RL', 0, 0);
-    ctx.restore();
-
-    // Glanz-Highlight oben
-    const shine = ctx.createLinearGradient(0, 0, 0, h * 0.55);
-    shine.addColorStop(0, 'rgba(255,255,255,0.42)');
+    const shine = ctx.createLinearGradient(0, 0, 0, h * 0.5);
+    shine.addColorStop(0, 'rgba(255,255,255,0.35)');
     shine.addColorStop(1, 'rgba(255,255,255,0)');
     ctx.fillStyle = shine;
-    ctx.fillRect(0, 0, w, h * 0.55);
+    ctx.fillRect(0, 0, w, h * 0.5);
 }
 
-function spawnDust(dustLayer, x, y, intensity, fieldRect) {
-    const count = 1 + Math.floor(intensity * 3);
+/* Einzelner Kratz-Strich wie mit Münzkante */
+function scratchSegment(ctx, from, to, coinW, pressure) {
+    const dx = to.x - from.x;
+    const dy = to.y - from.y;
+    const dist = Math.hypot(dx, dy);
+    if (dist < 0.3) return;
+
+    const angle = Math.atan2(dy, dx);
+    const perpX = -Math.sin(angle);
+    const perpY = Math.cos(angle);
+    const w = coinW * (0.85 + pressure * 0.2);
+
+    ctx.save();
+    ctx.globalCompositeOperation = 'destination-out';
+    ctx.strokeStyle = 'rgba(0,0,0,1)';
+    ctx.lineCap = 'round';
+    ctx.lineJoin = 'round';
+
+    // Hauptfurche – harte Kante, kein weicher Kreis
+    ctx.lineWidth = w;
+    ctx.beginPath();
+    ctx.moveTo(from.x, from.y);
+    ctx.lineTo(to.x, to.y);
+    ctx.stroke();
+
+    // Seitliche Mikro-Kratzer von der Münzkante
+    const offsets = [-w * 0.55, w * 0.55];
+    ctx.lineWidth = w * 0.28;
+    ctx.globalAlpha = 0.9;
+    for (const off of offsets) {
+        const jx = (Math.random() - 0.5) * w * 0.12;
+        const jy = (Math.random() - 0.5) * w * 0.12;
+        ctx.beginPath();
+        ctx.moveTo(from.x + perpX * off + jx, from.y + perpY * off + jy);
+        ctx.lineTo(to.x + perpX * off - jx, to.y + perpY * off - jy);
+        ctx.stroke();
+    }
+
+    ctx.restore();
+}
+
+/* Erster Kontakt: kleine harte Kratzmarke statt Kreis */
+function scratchDot(ctx, x, y, coinW) {
+    ctx.save();
+    ctx.globalCompositeOperation = 'destination-out';
+    ctx.fillStyle = 'rgba(0,0,0,1)';
+    const w = coinW * 0.7;
+    const h = coinW * 0.25;
+    ctx.beginPath();
+    ctx.ellipse(x, y, w, h, Math.random() * Math.PI, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.restore();
+}
+
+function spawnDust(dustLayer, x, y, intensity, angle) {
+    const count = 1 + Math.floor(intensity * 4);
+    const perpX = angle != null ? Math.cos(angle) : (Math.random() - 0.5);
+    const perpY = angle != null ? Math.sin(angle) : -0.8;
+
     for (let i = 0; i < count; i++) {
         const p = document.createElement('span');
         p.className = 'dust-particle';
-        const size = 2 + Math.random() * 4;
-        p.style.width = `${size}px`;
-        p.style.height = `${size}px`;
-        p.style.left = `${x + (Math.random() - 0.5) * 18}px`;
-        p.style.top = `${y + (Math.random() - 0.5) * 18}px`;
-        p.style.setProperty('--dx', `${(Math.random() - 0.5) * 36}px`);
-        p.style.setProperty('--dy', `${-8 - Math.random() * 28}px`);
-        p.style.setProperty('--dur', `${0.35 + Math.random() * 0.35}s`);
+        const w = 1.5 + Math.random() * 3;
+        const h = 1 + Math.random() * 2;
+        p.style.width = `${w}px`;
+        p.style.height = `${h}px`;
+        p.style.borderRadius = '1px';
+        p.style.left = `${x + (Math.random() - 0.5) * 10}px`;
+        p.style.top = `${y + (Math.random() - 0.5) * 10}px`;
+        const spread = 20 + Math.random() * 24;
+        p.style.setProperty('--dx', `${perpX * spread + (Math.random() - 0.5) * 12}px`);
+        p.style.setProperty('--dy', `${perpY * spread - 6 - Math.random() * 16}px`);
+        p.style.setProperty('--dur', `${0.25 + Math.random() * 0.3}s`);
         dustLayer.appendChild(p);
         p.addEventListener('animationend', () => p.remove(), { once: true });
     }
 
-    while (dustLayer.children.length > 48) {
+    while (dustLayer.children.length > 56) {
         dustLayer.firstChild.remove();
     }
 }
@@ -307,8 +335,8 @@ function initScratchLayer(field, canvas, dustLayer, progressBar) {
     let last = null;
     let checkQueued = false;
     let scratchMoves = 0;
-    const brush = canvas.width * 0.038;
-    const minMoves = 18;
+    const coinW = Math.max(3, canvas.width * 0.016);
+    const minMoves = 28;
 
     const toCanvas = (e) => {
         const r = canvas.getBoundingClientRect();
@@ -318,33 +346,27 @@ function initScratchLayer(field, canvas, dustLayer, progressBar) {
         };
     };
 
-    const stampSoft = (x, y, size, alpha = 1) => {
-        const g = ctx.createRadialGradient(x, y, 0, x, y, size);
-        g.addColorStop(0, `rgba(0,0,0,${alpha})`);
-        g.addColorStop(0.45, `rgba(0,0,0,${alpha * 0.85})`);
-        g.addColorStop(0.75, `rgba(0,0,0,${alpha * 0.35})`);
-        g.addColorStop(1, 'rgba(0,0,0,0)');
-        ctx.fillStyle = g;
-        ctx.beginPath();
-        ctx.arc(x, y, size, 0, Math.PI * 2);
-        ctx.fill();
-    };
-
     const erase = (p, intensity = 0.5) => {
-        ctx.globalCompositeOperation = 'destination-out';
-
         if (last) {
-            const dist = Math.hypot(p.x - last.x, p.y - last.y);
-            const steps = Math.max(1, Math.ceil(dist / (brush * 0.28)));
-            for (let i = 0; i <= steps; i++) {
-                const t = i / steps;
-                const x = last.x + (p.x - last.x) * t;
-                const y = last.y + (p.y - last.y) * t;
-                stampSoft(x, y, brush * (0.85 + intensity * 0.08), 0.92);
+            const dx = p.x - last.x;
+            const dy = p.y - last.y;
+            const dist = Math.hypot(dx, dy);
+            const steps = Math.max(1, Math.ceil(dist / 1.8));
+
+            for (let i = 1; i <= steps; i++) {
+                const t0 = (i - 1) / steps;
+                const t1 = i / steps;
+                const from = { x: last.x + dx * t0, y: last.y + dy * t0 };
+                const to   = { x: last.x + dx * t1, y: last.y + dy * t1 };
+                scratchSegment(ctx, from, to, coinW, intensity);
             }
         } else {
-            stampSoft(p.x, p.y, brush * 0.9, 1);
+            scratchDot(ctx, p.x, p.y, coinW);
         }
+
+        const scratchAngle = last
+            ? Math.atan2(p.y - last.y, p.x - last.x) + Math.PI / 2
+            : null;
 
         last = p;
         scratchMoves++;
@@ -357,6 +379,7 @@ function initScratchLayer(field, canvas, dustLayer, progressBar) {
             (p.x / canvas.width) * r.width,
             (p.y / canvas.height) * r.height,
             intensity,
+            scratchAngle,
         );
 
         if (!checkQueued) {
@@ -381,7 +404,7 @@ function initScratchLayer(field, canvas, dustLayer, progressBar) {
         if (!scratching || resultShown) return;
         const point = toCanvas(e);
         const intensity = last
-            ? Math.min(1, Math.hypot(point.x - last.x, point.y - last.y) / (brush * 1.8))
+            ? Math.min(1, Math.hypot(point.x - last.x, point.y - last.y) / (coinW * 3))
             : 0.4;
         erase(point, intensity);
         if (intensity > 0.15) scratchSound(intensity);
