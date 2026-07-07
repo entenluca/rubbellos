@@ -274,10 +274,36 @@ html, body {
     transition: box-shadow .22s ease, transform .22s ease, border-color .22s ease;
 }
 
+.field::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    pointer-events: none;
+    border-radius: inherit;
+    box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .06);
+}
+
 .field:hover {
     border-color: rgba(77, 248, 255, .58);
     box-shadow: 0 0 18px rgba(77, 248, 255, .24), inset 0 0 24px rgba(22, 140, 255, .18);
     transform: translateY(-2px);
+}
+
+.field.scratching {
+    border-color: rgba(77, 248, 255, .72);
+    box-shadow:
+        0 0 22px rgba(77, 248, 255, .28),
+        inset 0 0 28px rgba(22, 140, 255, .22);
+}
+
+.field.hint-scratch canvas {
+    animation: scratchHint 2.4s ease-in-out infinite;
+}
+
+@keyframes scratchHint {
+    0%, 100% { filter: brightness(1); }
+    50% { filter: brightness(1.12) saturate(1.08); }
 }
 
 .field-value {
@@ -305,16 +331,93 @@ html, body {
 .field canvas {
     position: absolute;
     inset: 0;
+    z-index: 3;
     width: 100%;
     height: 100%;
-    cursor: grab;
+    cursor:
+        url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24'%3E%3Ccircle cx='12' cy='12' r='8' fill='rgba(200,210,220,0.9)' stroke='rgba(77,248,255,0.8)' stroke-width='1.5'/%3E%3C/svg%3E") 12 12,
+        grab;
     touch-action: none;
-    transition: opacity .45s ease;
+    transition: opacity .45s ease, transform .45s ease, filter .45s ease;
+    will-change: opacity, transform, filter;
 }
 
-.field canvas:active { cursor: grabbing; }
+.field canvas:active {
+    cursor:
+        url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24'%3E%3Ccircle cx='12' cy='12' r='9' fill='rgba(180,190,205,0.95)' stroke='rgba(77,248,255,1)' stroke-width='2'/%3E%3C/svg%3E") 12 12,
+        grabbing;
+}
+
+.field-progress {
+    position: absolute;
+    left: 10px;
+    right: 10px;
+    bottom: 8px;
+    z-index: 4;
+    height: 3px;
+    border-radius: 999px;
+    background: rgba(2, 8, 18, .55);
+    overflow: hidden;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity .2s ease;
+}
+
+.field.scratching .field-progress,
+.field.revealing .field-progress {
+    opacity: 1;
+}
+
+.field-progress span {
+    display: block;
+    height: 100%;
+    width: 0;
+    border-radius: inherit;
+    background: linear-gradient(90deg, rgba(22, 140, 255, .85), rgba(77, 248, 255, .95));
+    box-shadow: 0 0 8px rgba(77, 248, 255, .55);
+    transition: width .12s linear;
+}
+
+.field.revealed .field-progress { opacity: 0; }
+
+.scratch-dust {
+    position: absolute;
+    inset: 0;
+    z-index: 5;
+    pointer-events: none;
+    overflow: hidden;
+}
+
+.dust-particle {
+    position: absolute;
+    border-radius: 50%;
+    background: linear-gradient(145deg, #e8edf4, #9aa8b8);
+    box-shadow: 0 0 4px rgba(255, 255, 255, .45);
+    animation: dustFly var(--dur, .45s) ease-out forwards;
+}
+
+@keyframes dustFly {
+    0% {
+        opacity: 0.9;
+        transform: translate(0, 0) scale(1);
+    }
+    100% {
+        opacity: 0;
+        transform: translate(var(--dx, 0), var(--dy, -18px)) scale(0.2);
+    }
+}
+
 .field.revealed canvas { opacity: 0; pointer-events: none; }
-.field.revealed .field-value { animation: popIn .32s ease; }
+.field.revealed .field-value { animation: popIn .38s cubic-bezier(.2,.9,.28,1.15); }
+.field.revealing .field-value {
+    animation: revealGlow .55s ease;
+}
+
+@keyframes revealGlow {
+    0% { filter: brightness(0.85); }
+    45% { filter: brightness(1.35); }
+    100% { filter: brightness(1); }
+}
 
 @keyframes popIn {
     0% { transform: scale(.88); filter: brightness(.8); }
@@ -530,7 +633,9 @@ html, body {
 @media (prefers-reduced-motion: reduce) {
     .result-rays,
     .result-emoji,
-    .btn-continue .dot {
+    .btn-continue .dot,
+    .field.hint-scratch canvas,
+    .dust-particle {
         animation: none !important;
     }
 }
