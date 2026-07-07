@@ -4,72 +4,66 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>WM Rubbellos</title>
-    <!-- Fallback-Fonts sind in style.css hinterlegt, falls CEF externe CDNs blockt -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Inter:wght@500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
     <div id="app" class="hidden">
-        <div class="panel">
+        <div class="scratch-card">
 
-            <!-- ───────────── HEADER ───────────── -->
-            <header class="panel-header">
-                <div class="brand">
-                    <div class="brand-logo">RL</div>
-                    <div class="brand-text">
-                        <h1 id="ui-title">RUBBELLOS</h1>
-                        <span id="ui-subtitle">
-                            <b id="ui-brand">Rubbellos</b> | <span id="ui-sub">Halte und ziehe zum Freirubbeln</span>
-                        </span>
+            <!-- Perforierte Kartenkante oben -->
+            <div class="card-perforation card-perforation-top"></div>
+
+            <header class="card-header">
+                <div class="card-header-top">
+                    <span class="card-serial" id="card-serial">Nr. 0000000</span>
+                    <div class="header-actions">
+                        <button id="btn-prizes" class="btn-card btn-card-ghost">
+                            <span id="ui-prizes-label">Gewinne</span>
+                        </button>
+                        <button id="btn-close" class="btn-card btn-card-close">
+                            <span id="ui-close-label">Schließen</span>
+                        </button>
                     </div>
                 </div>
 
-                <div class="header-actions">
-                    <button id="btn-prizes" class="btn-ghost">
-                        <span id="ui-prizes-label">Gewinne</span>
-                        <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2">
-                            <circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/>
-                        </svg>
-                    </button>
-                    <button id="btn-close" class="btn-close">
-                        <span id="ui-close-label">Schließen</span>
-                        <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2">
-                            <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/>
-                        </svg>
-                    </button>
+                <div class="card-banner">
+                    <div class="card-banner-stripe"></div>
+                    <h1 id="ui-title">RUBBELLOS</h1>
+                    <p id="ui-rules">Finde 3 gleiche Symbole und gewinne!</p>
                 </div>
+
+                <p class="card-instruction">
+                    <b id="ui-brand">Rubbellos</b> – <span id="ui-sub">Kratze die silbernen Felder frei</span>
+                </p>
             </header>
 
-            <!-- ───────────── GEWINNE-PANEL (Dropdown) ───────────── -->
             <div id="prizes-panel" class="prizes-panel hidden">
                 <h3 id="ui-prizes-header">Mögliche Gewinne</h3>
                 <ul id="prizes-list"></ul>
             </div>
 
-            <!-- ───────────── RUBBELFELDER ───────────── -->
-            <div class="ticket-body">
-                <main class="grid" id="grid">
-                    <!-- Felder werden per JS erzeugt -->
-                </main>
+            <div class="card-play-area">
+                <div class="play-label">SPIELFELD</div>
+                <main class="grid" id="grid"></main>
             </div>
 
-            <!-- ───────────── FOOTER ───────────── -->
-            <footer class="panel-footer">
+            <footer class="card-footer">
+                <span class="card-legal">Glücksspiel nur Ingame · Kein Echtgeld</span>
                 <button id="btn-reveal" class="btn-reveal">ALLES FREIRUBBELN</button>
             </footer>
 
-            <!-- ───────────── ERGEBNIS-OVERLAY ───────────── -->
+            <div class="card-perforation card-perforation-bottom"></div>
+
             <div id="result" class="result hidden">
-                <div class="result-rays"></div>
                 <div class="result-content">
                     <div id="result-emoji" class="result-emoji">😞</div>
                     <span id="result-tagline" class="result-tagline"></span>
                     <h2 id="result-title" class="result-title"></h2>
                     <p id="result-sub" class="result-sub"></p>
                     <button id="btn-continue" class="btn-continue">
-                        <span class="dot"></span>
                         <span id="ui-continue-label">WEITER</span>
                     </button>
                 </div>

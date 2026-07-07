@@ -111,7 +111,9 @@ function open(data) {
     lastScratchSound = 0;
 
     applyLocale(data.config.locale);
-    buildPrizesList(data.config.prizes, data.config.locale);
+    buildPrizesList(data.config.prizes);
+    document.getElementById('card-serial').textContent =
+        'Nr. ' + String(Math.floor(Math.random() * 9000000) + 1000000);
 
     document.getElementById('btn-reveal').classList.toggle('hidden', !data.config.revealAll);
     document.getElementById('btn-reveal').disabled = false;
@@ -135,14 +137,17 @@ function hide() {
 }
 
 function applyLocale(L) {
-    document.getElementById('ui-title').textContent         = L.title;
-    document.getElementById('ui-brand').textContent         = L.brand;
-    document.getElementById('ui-sub').textContent           = L.subtitle;
-    document.getElementById('ui-prizes-label').textContent  = L.prizesButton;
-    document.getElementById('ui-prizes-header').textContent = L.prizesHeader;
-    document.getElementById('ui-close-label').textContent = L.closeButton;
+    document.getElementById('ui-title').textContent          = L.title;
+    document.getElementById('ui-brand').textContent          = L.brand;
+    document.getElementById('ui-sub').textContent            = L.subtitle;
+    if (document.getElementById('ui-rules')) {
+        document.getElementById('ui-rules').textContent = L.rules;
+    }
+    document.getElementById('ui-prizes-label').textContent   = L.prizesButton;
+    document.getElementById('ui-prizes-header').textContent  = L.prizesHeader;
+    document.getElementById('ui-close-label').textContent  = L.closeButton;
     document.getElementById('ui-continue-label').textContent = L.continueButton;
-    document.getElementById('btn-reveal').textContent       = L.revealAll;
+    document.getElementById('btn-reveal').textContent        = L.revealAll;
 }
 
 function buildPrizesList(prizes) {
@@ -170,7 +175,10 @@ function buildGrid(fields) {
         if (index === 0) field.classList.add('hint-scratch');
 
         const value = document.createElement('div');
-        value.className = 'field-value' + (label === 'NIETE' ? ' is-blank' : '');
+        let valueClass = 'field-value';
+        if (label === 'NIETE') valueClass += ' is-blank';
+        else if (label === 'JACKPOT') valueClass += ' is-jackpot';
+        value.className = valueClass;
         value.textContent = label;
 
         const progress = document.createElement('div');
@@ -189,53 +197,59 @@ function buildGrid(fields) {
     });
 }
 
-/* Silber-Rubbelschicht mit Kratz-Textur (wird strichweise freigerubbelt) */
+/* Silber-Rubbelschicht wie auf echten Rubbelkarten */
 function paintScratchCoating(ctx, w, h) {
-    const base = ctx.createLinearGradient(0, 0, w, h);
-    base.addColorStop(0, '#ccd4de');
-    base.addColorStop(0.35, '#e4eaf0');
-    base.addColorStop(0.65, '#aab6c4');
-    base.addColorStop(1, '#9aa8b6');
+    const base = ctx.createLinearGradient(0, 0, w * 0.3, h);
+    base.addColorStop(0, '#d8dfe6');
+    base.addColorStop(0.4, '#eef2f6');
+    base.addColorStop(0.6, '#b8c4d0');
+    base.addColorStop(1, '#a8b4c0');
     ctx.fillStyle = base;
     ctx.fillRect(0, 0, w, h);
 
-    // Feine metallische Kratzer (liegen unter der Schicht)
-    for (let i = 0; i < 600; i++) {
-        const alpha = 0.03 + Math.random() * 0.08;
+    for (let i = 0; i < 400; i++) {
+        const alpha = 0.04 + Math.random() * 0.1;
         ctx.strokeStyle = Math.random() > 0.5
             ? `rgba(255,255,255,${alpha})`
-            : `rgba(20,40,60,${alpha})`;
-        ctx.lineWidth = 0.3 + Math.random() * 0.9;
+            : `rgba(40,55,70,${alpha * 0.8})`;
+        ctx.lineWidth = 0.3 + Math.random() * 0.8;
         ctx.beginPath();
         const x = Math.random() * w;
         const y = Math.random() * h;
-        const len = 4 + Math.random() * 18;
+        const len = 3 + Math.random() * 12;
         const ang = Math.random() * Math.PI;
         ctx.moveTo(x, y);
         ctx.lineTo(x + Math.cos(ang) * len, y + Math.sin(ang) * len);
         ctx.stroke();
     }
 
-    // Dezentes Fragezeichen-Raster
     ctx.save();
-    ctx.fillStyle = 'rgba(30, 60, 90, 0.12)';
-    ctx.font = `700 ${Math.floor(h * 0.16)}px 'Chakra Petch', sans-serif`;
+    ctx.fillStyle = 'rgba(80, 95, 110, 0.1)';
+    ctx.font = `700 ${Math.floor(h * 0.14)}px sans-serif`;
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
-    for (let row = 0; row < 3; row++) {
-        for (let col = 0; col < 5; col++) {
-            const x = (col + 0.5) * (w / 5);
-            const y = (row + 0.5) * (h / 3);
-            ctx.fillText('?', x, y);
+    for (let row = 0; row < 2; row++) {
+        for (let col = 0; col < 4; col++) {
+            ctx.fillText('?', (col + 0.5) * (w / 4), (row + 0.5) * (h / 2));
         }
     }
     ctx.restore();
 
-    const shine = ctx.createLinearGradient(0, 0, 0, h * 0.5);
-    shine.addColorStop(0, 'rgba(255,255,255,0.35)');
+    const shine = ctx.createLinearGradient(0, 0, 0, h * 0.45);
+    shine.addColorStop(0, 'rgba(255,255,255,0.4)');
     shine.addColorStop(1, 'rgba(255,255,255,0)');
     ctx.fillStyle = shine;
-    ctx.fillRect(0, 0, w, h * 0.5);
+    ctx.fillRect(0, 0, w, h * 0.45);
+}
+
+/* Text-Zone in der Mitte des Feldes (wo der Gewinn steht) */
+function getTextZone(canvas) {
+    return {
+        x: Math.floor(canvas.width * 0.12),
+        y: Math.floor(canvas.height * 0.18),
+        w: Math.floor(canvas.width * 0.76),
+        h: Math.floor(canvas.height * 0.64),
+    };
 }
 
 /* Einzelner Kratz-Strich wie mit Münzkante */
@@ -336,7 +350,7 @@ function initScratchLayer(field, canvas, dustLayer, progressBar) {
     let checkQueued = false;
     let scratchMoves = 0;
     const coinW = Math.max(3, canvas.width * 0.016);
-    const minMoves = 28;
+    const minMoves = 8;
 
     const toCanvas = (e) => {
         const r = canvas.getBoundingClientRect();
@@ -423,14 +437,15 @@ function initScratchLayer(field, canvas, dustLayer, progressBar) {
 function checkProgress(field, canvas, ctx, progressBar, scratchMoves, minMoves) {
     if (field.classList.contains('revealed')) return;
 
-    const data = ctx.getImageData(0, 0, canvas.width, canvas.height).data;
+    const zone = getTextZone(canvas);
+    const data = ctx.getImageData(zone.x, zone.y, zone.w, zone.h).data;
     let clear = 0;
     let total = 0;
-    const step = 4 * 8;
+    const step = 4 * 3;
 
     for (let i = 3; i < data.length; i += step) {
         total++;
-        if (data[i] < 24) clear++;
+        if (data[i] < 40) clear++;
     }
 
     const pct = (clear / total) * 100;

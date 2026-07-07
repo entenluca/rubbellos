@@ -47,7 +47,7 @@ Config.PayoutAccount = 'money'
 -- ═══════════════════════════════════════════════════════════════
 --  RUBBEL-VERHALTEN
 -- ═══════════════════════════════════════════════════════════════
-Config.ScratchThreshold = 82    -- % eines Feldes, ab dem es automatisch komplett aufgedeckt wird
+Config.ScratchThreshold = 48    -- % des Text-Bereichs (Mitte), ab dem der Gewinn als sichtbar gilt
 Config.AllowRevealAll   = true  -- Button "ALLES FREIRUBBELN" anzeigen
 Config.Sounds           = true  -- Rubbel-/Gewinn-Sounds in der NUI (ohne externe Dateien)
 
@@ -74,7 +74,8 @@ Config.Progress = {
 -- ═══════════════════════════════════════════════════════════════
 Config.Locale = {
     title            = 'RUBBELLOS',
-    subtitle         = 'Mit der Maus kratzen – wie mit einer Münze',
+    rules            = 'Finde 3 gleiche Symbole und gewinne!',
+    subtitle         = 'Kratze die silbernen Felder frei',
     brand            = 'Rubbellos',
     prizesButton     = 'Gewinne',
     prizesHeader     = 'Mögliche Gewinne',
