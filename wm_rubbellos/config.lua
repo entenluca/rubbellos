@@ -47,7 +47,7 @@ Config.PayoutAccount = 'money'
 -- ═══════════════════════════════════════════════════════════════
 --  RUBBEL-VERHALTEN
 -- ═══════════════════════════════════════════════════════════════
-Config.ScratchThreshold = 55    -- % eines Feldes, ab dem es automatisch komplett aufgedeckt wird
+Config.ScratchThreshold = 82    -- % eines Feldes, ab dem es automatisch komplett aufgedeckt wird
 Config.AllowRevealAll   = true  -- Button "ALLES FREIRUBBELN" anzeigen
 Config.Sounds           = true  -- Rubbel-/Gewinn-Sounds in der NUI (ohne externe Dateien)
 

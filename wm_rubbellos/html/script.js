@@ -306,8 +306,9 @@ function initScratchLayer(field, canvas, dustLayer, progressBar) {
     let scratching = false;
     let last = null;
     let checkQueued = false;
-    let progressPct = 0;
-    const brush = canvas.width * 0.065;
+    let scratchMoves = 0;
+    const brush = canvas.width * 0.038;
+    const minMoves = 18;
 
     const toCanvas = (e) => {
         const r = canvas.getBoundingClientRect();
@@ -320,7 +321,8 @@ function initScratchLayer(field, canvas, dustLayer, progressBar) {
     const stampSoft = (x, y, size, alpha = 1) => {
         const g = ctx.createRadialGradient(x, y, 0, x, y, size);
         g.addColorStop(0, `rgba(0,0,0,${alpha})`);
-        g.addColorStop(0.55, `rgba(0,0,0,${alpha * 0.75})`);
+        g.addColorStop(0.45, `rgba(0,0,0,${alpha * 0.85})`);
+        g.addColorStop(0.75, `rgba(0,0,0,${alpha * 0.35})`);
         g.addColorStop(1, 'rgba(0,0,0,0)');
         ctx.fillStyle = g;
         ctx.beginPath();
@@ -333,19 +335,19 @@ function initScratchLayer(field, canvas, dustLayer, progressBar) {
 
         if (last) {
             const dist = Math.hypot(p.x - last.x, p.y - last.y);
-            const steps = Math.max(1, Math.ceil(dist / (brush * 0.22)));
+            const steps = Math.max(1, Math.ceil(dist / (brush * 0.28)));
             for (let i = 0; i <= steps; i++) {
                 const t = i / steps;
                 const x = last.x + (p.x - last.x) * t;
                 const y = last.y + (p.y - last.y) * t;
-                const wobble = (1 - Math.abs(t - 0.5) * 2) * brush * 0.08;
-                stampSoft(x + wobble, y, brush * (0.92 + intensity * 0.12), 0.95);
+                stampSoft(x, y, brush * (0.85 + intensity * 0.08), 0.92);
             }
         } else {
-            stampSoft(p.x, p.y, brush, 1);
+            stampSoft(p.x, p.y, brush * 0.9, 1);
         }
 
         last = p;
+        scratchMoves++;
         field.classList.remove('hint-scratch');
         field.classList.add('scratching');
 
@@ -361,7 +363,7 @@ function initScratchLayer(field, canvas, dustLayer, progressBar) {
             checkQueued = true;
             requestAnimationFrame(() => {
                 checkQueued = false;
-                checkProgress(field, canvas, ctx, progressBar);
+                checkProgress(field, canvas, ctx, progressBar, scratchMoves, minMoves);
             });
         }
     };
@@ -395,22 +397,23 @@ function initScratchLayer(field, canvas, dustLayer, progressBar) {
     canvas.addEventListener('pointerleave', () => { last = null; });
 }
 
-function checkProgress(field, canvas, ctx, progressBar) {
+function checkProgress(field, canvas, ctx, progressBar, scratchMoves, minMoves) {
     if (field.classList.contains('revealed')) return;
 
     const data = ctx.getImageData(0, 0, canvas.width, canvas.height).data;
     let clear = 0;
     let total = 0;
-    const step = 4 * 12;
+    const step = 4 * 8;
 
     for (let i = 3; i < data.length; i += step) {
         total++;
-        if (data[i] === 0) clear++;
+        if (data[i] < 24) clear++;
     }
 
     const pct = (clear / total) * 100;
     if (progressBar) progressBar.style.width = `${Math.min(100, pct)}%`;
 
+    if (scratchMoves < minMoves) return;
     if (pct >= state.config.threshold) revealField(field);
 }
 
@@ -421,19 +424,17 @@ function revealField(field) {
 
     const canvas = field.querySelector('canvas');
     if (canvas) {
-        canvas.style.transition = 'opacity 0.55s ease, transform 0.55s cubic-bezier(.2,.9,.28,1.1), filter 0.55s ease';
+        canvas.style.transition = 'opacity 0.45s ease';
         canvas.style.opacity = '0';
-        canvas.style.transform = 'scale(1.04) rotate(1.2deg)';
-        canvas.style.filter = 'blur(3px)';
         setTimeout(() => {
             canvas.style.pointerEvents = 'none';
-        }, 560);
+        }, 460);
     }
 
-    setTimeout(() => field.classList.remove('revealing'), 600);
+    setTimeout(() => field.classList.remove('revealing'), 500);
 
     if (revealedCount >= 6) {
-        setTimeout(showResult, 700);
+        setTimeout(showResult, 800);
     }
 }
 
